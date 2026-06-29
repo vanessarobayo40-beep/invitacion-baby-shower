@@ -119,6 +119,16 @@ def init_db():
         for i, (name, note, emoji, img) in enumerate(SEED_GIFTS):
             cur.execute(ph("INSERT INTO gifts(name,note,emoji,image_url,sort) VALUES(?,?,?,?,?)"),
                         (name, note, emoji, img, i))
+    # Tabla de confirmaciones de asistencia (RSVP)
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS rsvps(
+            {id_col},
+            name TEXT NOT NULL,
+            guests INTEGER DEFAULT 0,
+            message TEXT DEFAULT '',
+            created_at TEXT
+        )
+    """)
     db.commit()
     db.close()
 
@@ -225,6 +235,51 @@ def delete_gift(gid):
         return jsonify({"ok": False, "error": "Clave de anfitrión incorrecta."}), 403
     run("DELETE FROM gifts WHERE id=?", (gid,), commit=True)
     return jsonify({"ok": True})
+
+
+# ====================================================================
+#  Confirmar asistencia (RSVP)
+# ====================================================================
+def rsvp_summary(include_details=False):
+    rows = run("SELECT * FROM rsvps ORDER BY id DESC", fetch="all")
+    people = len(rows)
+    total = people + sum(int(r["guests"] or 0) for r in rows)
+    data = {"people": people, "total": total,
+            "names": [r["name"] for r in rows]}
+    if include_details:
+        data["items"] = [{"name": r["name"], "guests": int(r["guests"] or 0),
+                          "message": r["message"] or ""} for r in rows]
+    return data
+
+
+@app.route("/api/rsvp", methods=["GET"])
+def rsvp_list():
+    is_host = request.args.get("host_key", "") == HOST_KEY
+    return jsonify(rsvp_summary(include_details=is_host))
+
+
+@app.route("/api/rsvp", methods=["POST"])
+def rsvp_add():
+    data = request.get_json(silent=True) or {}
+    name = clean(data.get("name"), 40)
+    if not name:
+        return jsonify({"ok": False, "error": "Escribe tu nombre."}), 400
+    try:
+        guests = max(0, min(20, int(data.get("guests") or 0)))
+    except (TypeError, ValueError):
+        guests = 0
+    message = clean(data.get("message"), 200)
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    db = get_db()
+    # Si esa persona ya confirmó, actualizamos en vez de duplicar
+    existing = run("SELECT id FROM rsvps WHERE LOWER(name)=LOWER(?)", (name,), fetch="one", db=db)
+    if existing:
+        run("UPDATE rsvps SET guests=?, message=?, created_at=? WHERE id=?",
+            (guests, message, now, existing["id"]), commit=True, db=db)
+    else:
+        run("INSERT INTO rsvps(name,guests,message,created_at) VALUES(?,?,?,?)",
+            (name, guests, message, now), commit=True, db=db)
+    return jsonify({"ok": True, **rsvp_summary()})
 
 
 init_db()

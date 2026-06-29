@@ -147,6 +147,73 @@ function onRelease(id, giftName, reservedBy){
   };
 }
 
+/* -------------------- RSVP: confirmar asistencia -------------------- */
+async function loadRsvp(){
+  const url = state.hostKey ? `/api/rsvp?host_key=${encodeURIComponent(state.hostKey)}` : "/api/rsvp";
+  const { ok, data } = await api(url);
+  if(!ok) return;
+  state.rsvp = data;
+  const el = $("#rsvpCount");
+  if(data.people === 0){
+    el.textContent = "Sé el primero en confirmar 💙";
+  } else {
+    el.textContent = `${data.total} persona${data.total!==1?"s":""} confirmada${data.total!==1?"s":""}`
+      + (data.names.length ? ` · ${data.names.slice(0,3).join(", ")}${data.names.length>3?"…":""}` : "");
+  }
+}
+
+$("#rsvpBtn").onclick = ()=>{
+  openSheet(`
+    <h2>Confirmar asistencia</h2>
+    <p class="hint" style="margin:0 0 16px">Nos encantará tenerte. Cuéntanos quién viene 💙</p>
+    <div class="field"><label>Tu nombre</label>
+      <input id="rvName" type="text" placeholder="Ej. Familia Pérez" value="${esc(state.myName)}" maxlength="40" autocomplete="name"></div>
+    <div class="field"><label>¿Cuántos acompañantes? (sin contarte)</label>
+      <input id="rvGuests" type="number" min="0" max="20" inputmode="numeric" value="0"></div>
+    <div class="field"><label>Mensaje para los papás (opcional)</label>
+      <input id="rvMsg" type="text" placeholder="Ej. ¡Felicidades, ahí estaremos!" maxlength="200"></div>
+    <div class="actions">
+      <button class="btn-ghost" onclick="closeSheet()">Cancelar</button>
+      <button class="btn-gold" id="rvGo">Confirmar 💌</button>
+    </div>
+  `);
+  $("#rvName").focus();
+  $("#rvGo").onclick = async ()=>{
+    const name = $("#rvName").value.trim();
+    if(!name){ $("#rvName").focus(); toast("Escribe tu nombre 🙂","err"); return; }
+    $("#rvGo").disabled = true; $("#rvGo").textContent = "Enviando…";
+    const body = { name, guests:$("#rvGuests").value, message:$("#rvMsg").value.trim() };
+    const { ok, data } = await api("/api/rsvp", {method:"POST", body:JSON.stringify(body)});
+    if(ok && data.ok){
+      state.myName = name; localStorage.setItem("bs_name", name);
+      closeSheet(); toast("¡Gracias por confirmar! 💙","ok"); loadRsvp();
+    } else {
+      toast((data && data.error) || "No se pudo confirmar","err");
+      $("#rvGo").disabled=false; $("#rvGo").textContent="Confirmar 💌";
+    }
+  };
+};
+
+$("#rsvpListBtn").onclick = async ()=>{
+  await loadRsvp();
+  const items = (state.rsvp && state.rsvp.items) || [];
+  const rows = items.length ? items.map(g=>`
+    <div class="guest-row">
+      <div class="av">${esc((g.name||"?").trim().charAt(0).toUpperCase())}</div>
+      <div style="flex:1">
+        <div class="gn">${esc(g.name)}</div>
+        ${g.message?`<div class="gm">“${esc(g.message)}”</div>`:""}
+      </div>
+      <div class="gg">${1+(g.guests||0)} ${1+(g.guests||0)===1?"persona":"personas"}</div>
+    </div>`).join("") : `<p class="hint" style="padding:20px 0">Aún no hay confirmaciones.</p>`;
+  openSheet(`
+    <h2>Confirmados</h2>
+    <p class="hint" style="margin:6px 0 4px">${state.rsvp.people} respuesta(s) · ${state.rsvp.total} persona(s) en total</p>
+    <div class="guest-list">${rows}</div>
+    <div class="actions"><button class="btn-primary" onclick="closeSheet()">Cerrar</button></div>
+  `);
+};
+
 /* -------------------- filtros -------------------- */
 $$(".chip").forEach(c=> c.onclick = ()=>{
   $$(".chip").forEach(x=>x.classList.remove("active"));
@@ -160,6 +227,7 @@ function applyHostUI(){
   document.body.classList.toggle("host", !!state.hostKey);
   const btn = $("#hostToggle");
   btn.textContent = state.hostKey ? "✓ Modo anfitriona (agregar/eliminar) · salir" : "⚙︎ Soy la anfitriona";
+  if(typeof loadRsvp === "function") loadRsvp();  // recarga detalles de confirmados
 }
 $("#hostToggle").onclick = ()=>{
   if(state.hostKey){
@@ -224,7 +292,8 @@ async function onDelete(id){
 $("#hostToggle").addEventListener("dblclick", ()=>{ if(state.hostKey) openAddGift(); });
 
 /* -------------------- init -------------------- */
+function refresh(){ load(); loadRsvp(); }
 applyHostUI();
-load();
-setInterval(load, 15000); // refresca cada 15s para ver reservas de otros invitados
-document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) load(); });
+refresh();
+setInterval(refresh, 15000); // refresca cada 15s para ver reservas y confirmaciones
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refresh(); });
