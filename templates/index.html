@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Invitación Baby Shower</title>
+<meta name="description" content="Aparta tu regalo para el baby shower 💙">
+<meta name="theme-color" content="#1e3a5f">
+<meta property="og:title" content="Invitación Baby Shower 💙">
+<meta property="og:description" content="Toca para apartar tu regalo y evitar repetidos.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- ============ ENCABEZADO ============ -->
+<header class="hero">
+  <div class="hero-bg"><span class="tw" style="top:18%;left:14%">✦</span><span class="tw" style="top:30%;right:18%;animation-delay:.7s">✦</span><span class="tw" style="bottom:24%;left:24%;animation-delay:1.3s">✦</span><span class="tw" style="bottom:34%;right:22%;animation-delay:.4s">✦</span></div>
+  <div class="moon"></div>
+  <p class="eyebrow">Lista de regalos</p>
+  <h1 class="title">{{ event.title }}</h1>
+  <p class="baby">{{ event.baby }}</p>
+  <p class="subtitle">{{ event.subtitle }}</p>
+  <div class="meta">
+    <span>📅 {{ event.date }}</span>
+    <span>📍 {{ event.place }}</span>
+  </div>
+</header>
+
+<!-- ============ PROGRESO ============ -->
+<div class="progress-wrap">
+  <div class="progress-head">
+    <span id="progress-text">Cargando…</span>
+    <span id="progress-pct" class="pct"></span>
+  </div>
+  <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
+  <div class="filters">
+    <button class="chip active" data-filter="all">Todos</button>
+    <button class="chip" data-filter="free">Disponibles</button>
+    <button class="chip" data-filter="taken">Apartados</button>
+  </div>
+</div>
+
+<!-- ============ LISTA ============ -->
+<main class="grid" id="grid"></main>
+<p class="empty" id="empty" hidden>No hay regalos en esta vista.</p>
+
+<footer class="foot">
+  <button class="host-toggle" id="hostToggle">⚙︎ Soy la anfitriona</button>
+  <p>Hecho con ♥ para celebrar a nuestro bebé</p>
+</footer>
+
+<!-- ============ MODAL: APARTAR ============ -->
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet">
+    <!-- contenido inyectado por JS -->
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast" hidden></div>
+
+<script>
+  window.HOST_KEY_PLACEHOLDER = true; // la clave real nunca se expone; se pide al activarla
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

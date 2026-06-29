@@ -1,0 +1,29 @@
+# Despliegue automático en Render.com (gratis).
+# En Render: New + → "Blueprint" → elige este repositorio → Apply.
+# Crea la web y una base de datos PostgreSQL gratis, ya conectadas entre sí.
+databases:
+  - name: babyshower-db
+    plan: free
+
+services:
+  - type: web
+    name: invitacion-baby-shower
+    runtime: docker
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: babyshower-db
+          property: connectionString
+      - key: HOST_KEY
+        sync: false          # te pedirá escribir tu clave de anfitriona al desplegar
+      - key: EVENT_TITLE
+        value: "Baby Shower"
+      - key: EVENT_BABY
+        value: "Baby Apellido"
+      - key: EVENT_SUBTITLE
+        value: "Aparta tu regalo y evitemos repetidos 💙"
+      - key: EVENT_DATE
+        value: "Sábado 15 de Agosto · 4:00 PM"
+      - key: EVENT_PLACE
+        value: "Salón Las Nubes · Ciudad"
