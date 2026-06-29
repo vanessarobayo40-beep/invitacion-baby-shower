@@ -16,7 +16,7 @@ services:
           name: babyshower-db
           property: connectionString
       - key: HOST_KEY
-        sync: false          # te pedirá escribir tu clave de anfitriona al desplegar
+        value: "mama2026"    # clave de anfitriona (la puedes cambiar luego en Render)
       - key: EVENT_TITLE
         value: "Baby Shower"
       - key: EVENT_BABY
