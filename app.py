@@ -46,32 +46,32 @@ EVENT = {
 }
 
 # Sube este número cuando cambies la lista de regalos para forzar la recarga en la nube.
-SEED_VERSION = "3"
+SEED_VERSION = "4"
 
-# Lista real de regalos: (nombre, nota, emoji, cantidad)
+# Lista real de regalos: (nombre, nota, emoji, cantidad, imagen)
 SEED_GIFTS = [
-    ("Tina plegable + Pañales etapa 2",          "", "🛁", 1),
-    ("Toallas + Pañales etapa 3",                "", "🧻", 2),
-    ("Kit de aseo + pañales etapa 0",            "", "🧴", 2),
-    ("Set de body + semanario 0 - 3 meses",      "", "👶", 2),
-    ("Set de body + semanario 3 - 6 meses",      "", "👶", 3),
-    ("Set de body + semanario 6 - 9 meses",      "", "👶", 3),
-    ("Cobijas + pañal etapa 5",                  "", "🧸", 1),
-    ("Gorro y ruana",                            "", "🧢", 2),
-    ("Almohada de lactancia + Pañales etapa 4",  "", "🤱", 1),
-    ("Extractor de leche eléctrico",             "", "🍼", 1),
-    ("Pañalera + cambiador",                     "", "🎒", 1),
-    ("Muda de ropa 0 - 3 meses",                 "", "👕", 3),
-    ("Muda de ropa 3 - 6 meses",                 "", "👕", 3),
-    ("Muda de ropa 6 - 9 meses",                 "", "👕", 3),
-    ("Sleeping (saco para dormir)",              "", "🐻", 2),
-    ("Set de pijamas 0 - 3 meses + pañales etapa 2", "", "🌙", 3),
-    ("Set de pijama 3 - 6 meses + pañales etapa 0",  "", "🌙", 3),
-    ("Set de pijama 6 - 9 meses + pañales etapa 1",  "", "🌙", 3),
-    ("Nido para bebé",                           "", "🛏️", 1),
-    ("Coche",                                    "", "🚼", 1),
-    ("Gimnasio para bebé",                       "", "🪀", 1),
-    ("Tetero Avent 11 oz + babero en silicona",  "", "🍼", 1),
+    ("Tina plegable + Pañales etapa 2", "", "🛁", 1, "/static/img/gift01.jpg"),
+    ("Toallas + Pañales etapa 3", "", "🧻", 2, "/static/img/gift02.jpg"),
+    ("Kit de aseo + pañales etapa 0", "", "🧴", 2, "/static/img/gift03.jpg"),
+    ("Set de body + semanario 3 - 6 meses", "", "👕", 3, "/static/img/gift04.jpg"),
+    ("Set de body + semanario 6 - 9 meses", "", "👕", 3, "/static/img/gift05.jpg"),
+    ("Set de body + semanario 0 - 3 meses", "", "👕", 2, "/static/img/gift06.jpg"),
+    ("Cobijas + pañal etapa 5", "", "🧸", 1, "/static/img/gift07.jpg"),
+    ("Gorro y ruana", "", "🧢", 2, "/static/img/gift08.jpg"),
+    ("Almohada de lactancia + Pañales etapa 4", "", "🤱", 1, "/static/img/gift09.jpg"),
+    ("Extractor de leche eléctrico", "", "🍼", 1, "/static/img/gift10.jpg"),
+    ("Pañalera + cambiador", "", "🎒", 1, "/static/img/gift11.jpg"),
+    ("Muda de ropa 0 - 3 meses", "", "👕", 3, ""),
+    ("Muda de ropa 3 - 6 meses", "", "👕", 3, ""),
+    ("Muda de ropa 6 - 9 meses", "", "👕", 3, ""),
+    ("Sleeping (saco para dormir)", "", "🐻", 2, "/static/img/gift15.jpg"),
+    ("Set de pijamas 0 - 3 meses + pañales etapa 2", "", "👕", 3, "/static/img/gift16.jpg"),
+    ("Set de pijama 3 - 6 meses + pañales etapa 0", "", "👕", 3, "/static/img/gift17.jpg"),
+    ("Set de pijama 6 - 9 meses + pañales etapa 1", "", "👕", 3, "/static/img/gift18.jpg"),
+    ("Nido para bebé", "", "🛏️", 1, "/static/img/gift19.jpg"),
+    ("Coche", "", "🚼", 1, ""),
+    ("Gimnasio para bebé", "", "🪀", 1, "/static/img/gift21.jpg"),
+    ("Tetero Avent 11 oz + babero en silicona", "", "🍼", 1, "/static/img/gift22.jpg"),
 ]
 
 
@@ -184,9 +184,9 @@ def _create_schema():
     if empty or current != SEED_VERSION:
         cur.execute("DELETE FROM reservations")
         cur.execute("DELETE FROM gifts")
-        for i, (name, note, emoji, qty) in enumerate(SEED_GIFTS):
-            cur.execute(ph("INSERT INTO gifts(name,note,emoji,qty,sort) VALUES(?,?,?,?,?)"),
-                        (name, note, emoji, qty, i))
+        for i, (name, note, emoji, qty, image_url) in enumerate(SEED_GIFTS):
+            cur.execute(ph("INSERT INTO gifts(name,note,emoji,image_url,qty,sort) VALUES(?,?,?,?,?,?)"),
+                        (name, note, emoji, image_url, qty, i))
         cur.execute(ph("INSERT INTO settings(key,value) VALUES(?,?) "
                        "ON CONFLICT(key) DO UPDATE SET value=?"),
                     ("seed_version", SEED_VERSION, SEED_VERSION))

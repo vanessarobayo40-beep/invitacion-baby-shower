@@ -59,7 +59,7 @@ function render(){
 
 function cardHTML(g){
   const thumb = g.image_url
-    ? `<div class="thumb"><img src="${esc(g.image_url)}" alt=""></div>`
+    ? `<div class="photo"><img src="${esc(g.image_url)}" alt="" loading="lazy"></div>`
     : `<div class="thumb">${esc(g.emoji||"🎁")}</div>`;
   const del = `<button class="del" title="Eliminar" onclick="onDelete(${g.id})">✕</button>`;
   const myl = (state.myName||"").toLowerCase();
