@@ -19,8 +19,12 @@ app = Flask(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL")
 IS_PG = bool(DATABASE_URL)
 if IS_PG:
+    import time
     import psycopg
     from psycopg.rows import dict_row
+    # Normaliza el esquema por compatibilidad (postgres:// -> postgresql://)
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 else:
     import sqlite3
     DB_PATH = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "regalos.db"))
@@ -99,6 +103,23 @@ def run(sql, params=(), *, fetch=None, commit=False, db=None):
 
 
 def init_db():
+    # En la nube, la base de datos puede tardar unos segundos en estar lista:
+    # reintentamos varias veces antes de rendirnos para que el arranque no falle.
+    if IS_PG:
+        last = None
+        for intento in range(15):
+            try:
+                _create_schema()
+                return
+            except Exception as e:  # noqa: BLE001
+                last = e
+                print(f"[init_db] base de datos aún no lista (intento {intento+1}/15): {e}", flush=True)
+                time.sleep(3)
+        raise last
+    _create_schema()
+
+
+def _create_schema():
     db = connect()
     cur = db.cursor()
     id_col = "id SERIAL PRIMARY KEY" if IS_PG else "id INTEGER PRIMARY KEY AUTOINCREMENT"
