@@ -62,22 +62,32 @@ function cardHTML(g){
     ? `<div class="thumb"><img src="${esc(g.image_url)}" alt=""></div>`
     : `<div class="thumb">${esc(g.emoji||"🎁")}</div>`;
   const del = `<button class="del" title="Eliminar" onclick="onDelete(${g.id})">✕</button>`;
-  if(g.reserved){
+  const myl = (state.myName||"").toLowerCase();
+  const reservers = g.reservers || [];
+  const mine = reservers.some(n => n.toLowerCase() === myl);
+  const pill = g.qty > 1
+    ? `<span class="qty-pill ${g.reserved?'full':''}">${g.count} de ${g.qty} apartados</span>` : "";
+  const who = g.count > 0
+    ? `<p class="reservers">${g.qty>1?'Lo llevan':'Lo lleva'}: <b>${reservers.map(esc).join(", ")}</b></p>` : "";
+
+  // Caso 1: yo ya lo aparté
+  if(mine){
     return `<article class="card taken" data-id="${g.id}">
-      ${del}
-      <span class="ribbon">Apartado</span>
-      ${thumb}
-      <h3>${esc(g.name)}</h3>
-      ${g.note?`<p class="note">${esc(g.note)}</p>`:`<p class="note"></p>`}
-      <div class="taken-by"><span class="dot"></span>Lo lleva ${esc(g.reserved_by)}</div>
-      <button class="btn btn-release" onclick="onRelease(${g.id},'${esc(g.name)}','${esc(g.reserved_by)}')">Liberar</button>
+      ${del}<span class="ribbon">Tu regalo</span>${thumb}
+      <h3>${esc(g.name)}</h3>${pill}${who}
+      <button class="btn btn-release" onclick="onRelease(${g.id},'${esc(g.name)}')">Liberar el mío</button>
     </article>`;
   }
+  // Caso 2: completo (lo llevan otros)
+  if(g.reserved){
+    return `<article class="card taken" data-id="${g.id}">
+      ${del}<span class="ribbon">${g.qty>1?'Completo':'Apartado'}</span>${thumb}
+      <h3>${esc(g.name)}</h3>${pill}${who}
+    </article>`;
+  }
+  // Caso 3: disponible
   return `<article class="card" data-id="${g.id}">
-    ${del}
-    ${thumb}
-    <h3>${esc(g.name)}</h3>
-    ${g.note?`<p class="note">${esc(g.note)}</p>`:`<p class="note"></p>`}
+    ${del}${thumb}<h3>${esc(g.name)}</h3>${pill}${who}
     <button class="btn btn-reserve" onclick="onReserve(${g.id},'${esc(g.name)}','${esc(g.emoji||"🎁")}')">Apartar este</button>
   </article>`;
 }
@@ -123,13 +133,13 @@ function onReserve(id, name, emoji){
 }
 
 /* -------------------- liberar -------------------- */
-function onRelease(id, giftName, reservedBy){
+function onRelease(id, giftName){
   openSheet(`
     <h2>Liberar regalo</h2>
     <div class="gift-line"><span class="e">↩︎</span><strong>${giftName}</strong></div>
     <div class="field">
       <label>Confirma tu nombre</label>
-      <input id="relName" type="text" placeholder="El nombre con que lo apartaste" value="${esc(state.myName||reservedBy)}" maxlength="40">
+      <input id="relName" type="text" placeholder="El nombre con que lo apartaste" value="${esc(state.myName)}" maxlength="40">
     </div>
     <div class="actions">
       <button class="btn-ghost" onclick="closeSheet()">Cancelar</button>
@@ -261,6 +271,7 @@ function openAddGift(){
     <div class="field"><label>Nombre del regalo</label><input id="gName" placeholder="Ej. Termómetro digital" maxlength="80"></div>
     <div class="field"><label>Nota (opcional)</label><input id="gNote" placeholder="Ej. Color celeste" maxlength="120"></div>
     <div class="field"><label>Emoji (opcional)</label><input id="gEmoji" placeholder="🍼" maxlength="8"></div>
+    <div class="field"><label>Cantidad (cuántos se pueden regalar)</label><input id="gQty" type="number" min="1" max="20" value="1"></div>
     <div class="actions">
       <button class="btn-ghost" onclick="closeSheet()">Cerrar</button>
       <button class="btn-gold" id="gGo">Agregar 🎁</button>
@@ -271,7 +282,7 @@ function openAddGift(){
   $("#gGo").onclick = async ()=>{
     const name = $("#gName").value.trim();
     if(!name){ $("#gName").focus(); return; }
-    const body = { host_key:state.hostKey, name, note:$("#gNote").value.trim(), emoji:$("#gEmoji").value.trim() };
+    const body = { host_key:state.hostKey, name, note:$("#gNote").value.trim(), emoji:$("#gEmoji").value.trim(), qty:$("#gQty").value };
     const { ok, status, data } = await api("/api/gifts", {method:"POST", body:JSON.stringify(body)});
     if(ok && data.ok){ toast("Regalo agregado 🎁","ok"); openAddGift(); load(); }
     else if(status===403){ toast("Clave incorrecta","err"); state.hostKey=""; localStorage.removeItem("bs_host_key"); applyHostUI(); closeSheet(); }

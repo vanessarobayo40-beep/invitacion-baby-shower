@@ -16,18 +16,26 @@
 </head>
 <body>
 
-<!-- ============ ENCABEZADO ============ -->
+<!-- ============ TARJETA DE INVITACIÓN ============ -->
 <header class="hero">
-  <div class="hero-bg"><span class="tw" style="top:18%;left:14%">✦</span><span class="tw" style="top:30%;right:18%;animation-delay:.7s">✦</span><span class="tw" style="bottom:24%;left:24%;animation-delay:1.3s">✦</span><span class="tw" style="bottom:34%;right:22%;animation-delay:.4s">✦</span></div>
+  <div class="hero-bg"><span class="tw" style="top:14%;left:12%">✦</span><span class="tw" style="top:24%;right:16%;animation-delay:.7s">✦</span><span class="tw" style="bottom:18%;left:20%;animation-delay:1.3s">✦</span><span class="tw" style="bottom:28%;right:18%;animation-delay:.4s">✦</span></div>
   <div class="moon"></div>
-  <p class="eyebrow">Lista de regalos</p>
+  <p class="eyebrow">Con cariño, te invitamos a nuestro</p>
   <h1 class="title">{{ event.title }}</h1>
   <p class="baby">{{ event.baby }}</p>
+
+  <!-- Foto de los papás -->
+  <figure class="photo-frame">
+    <img src="{{ event.photo }}" alt="Los futuros papás"
+         onerror="this.closest('.photo-frame').classList.add('no-img')">
+  </figure>
+
   <p class="subtitle">{{ event.subtitle }}</p>
   <div class="meta">
     <span>📅 {{ event.date }}</span>
     <span>📍 {{ event.place }}</span>
   </div>
+  <p class="hosts-line">{{ event.hosts }}</p>
 </header>
 
 <!-- ============ CONFIRMAR ASISTENCIA (RSVP) ============ -->
@@ -44,6 +52,13 @@
     </div>
   </div>
 </section>
+
+<!-- ============ MESA DE REGALOS ============ -->
+<div class="section-head">
+  <p class="section-eyebrow">Mesa de regalos</p>
+  <h2 class="section-title">Aparta tu regalo</h2>
+  <p class="section-sub">Toca un regalo para apartarlo y evitar repetidos. Algunos tienen varias unidades 💙</p>
+</div>
 
 <!-- ============ PROGRESO ============ -->
 <div class="progress-wrap">

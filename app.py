@@ -1,13 +1,15 @@
 """
-Invitación Baby Shower · Lista de Regalos con reserva
-------------------------------------------------------
-Los invitados pueden apartar un regalo y los demás ven en tiempo real cuáles
-ya están reservados (sin registrarse).
+Invitación Baby Shower · Tarjeta + Confirmar asistencia + Lista de regalos
+--------------------------------------------------------------------------
+Todo en una sola página:
+  • Tarjeta de invitación (con foto, fecha y lugar)
+  • Confirmar asistencia (RSVP)
+  • Lista de regalos con reserva y CANTIDADES (varios pueden apartar el mismo
+    regalo si tiene cantidad 2, 3, etc.)
 
 Almacenamiento:
-  • En tu PC (local): SQLite -> archivo regalos.db
-  • En la nube (producción): PostgreSQL si existe la variable DATABASE_URL
-    (así las reservas quedan guardadas de forma permanente).
+  • Local (tu PC): SQLite -> regalos.db
+  • Nube (producción): PostgreSQL si existe DATABASE_URL
 """
 import os
 import datetime
@@ -22,43 +24,58 @@ if IS_PG:
     import time
     import psycopg
     from psycopg.rows import dict_row
-    # Normaliza el esquema por compatibilidad (postgres:// -> postgresql://)
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 else:
     import sqlite3
     DB_PATH = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "regalos.db"))
 
-# Clave para el modo anfitrión (agregar/eliminar regalos). Cámbiala en producción.
+# Clave del modo anfitrión (agregar/eliminar regalos). Cámbiala en producción.
 HOST_KEY = os.getenv("HOST_KEY", "mama2026")
 
-# Datos de la invitación (se pueden sobrescribir con variables de entorno)
+# Datos de la invitación (configurables por variables de entorno)
 EVENT = {
     "title":    os.getenv("EVENT_TITLE", "Baby Shower"),
-    "baby":     os.getenv("EVENT_BABY", "Baby Apellido"),
-    "subtitle": os.getenv("EVENT_SUBTITLE", "Aparta tu regalo y evitemos repetidos 💙"),
+    "baby":     os.getenv("EVENT_BABY", "Bienvenido, bebé"),
+    "subtitle": os.getenv("EVENT_SUBTITLE", "Con todo nuestro amor, te esperamos 💙"),
     "date":     os.getenv("EVENT_DATE", "Sábado 15 de Agosto · 4:00 PM"),
     "place":    os.getenv("EVENT_PLACE", "Salón Las Nubes · Ciudad"),
+    "hosts":    os.getenv("EVENT_HOSTS", "Los futuros papás"),
+    "photo":    os.getenv("EVENT_PHOTO", "/static/img/portada.jpg"),
 }
 
+# Sube este número cuando cambies la lista de regalos para forzar la recarga en la nube.
+SEED_VERSION = "3"
+
+# Lista real de regalos: (nombre, nota, emoji, cantidad)
 SEED_GIFTS = [
-    ("Pañales talla 1",         "Marca preferida: cualquiera 🙏", "🧷", ""),
-    ("Body / mamelucos 0-3m",   "En tonos celeste o neutro",      "👶", ""),
-    ("Manta de algodón",        "Suave para envolverlo",          "🧸", ""),
-    ("Biberones anticólico",    "Set de 2 o 3",                   "🍼", ""),
-    ("Toallitas húmedas",       "Pack grande, siempre útiles",    "🧻", ""),
-    ("Set de baño para bebé",   "Bañera, shampoo y toallas",      "🛁", ""),
-    ("Monitor de bebé",         "Para vigilarlo mientras duerme", "📡", ""),
-    ("Cobija / saco de dormir", "Para noches frescas",            "🌙", ""),
-    ("Juguetes de estimulación","Sonajeros y mordedores",         "🪀", ""),
-    ("Cuna portátil / corral",  "Para la sala o viajes",          "🛏️", ""),
-    ("Coche / carriola",        "Color azul o gris",              "🚼", ""),
-    ("Tarjeta de regalo",       "Si prefieres dejarlo a su gusto","🎁", ""),
+    ("Tina plegable + Pañales etapa 2",          "", "🛁", 1),
+    ("Toallas + Pañales etapa 3",                "", "🧻", 2),
+    ("Kit de aseo + pañales etapa 0",            "", "🧴", 2),
+    ("Set de body + semanario 0 - 3 meses",      "", "👶", 2),
+    ("Set de body + semanario 3 - 6 meses",      "", "👶", 3),
+    ("Set de body + semanario 6 - 9 meses",      "", "👶", 3),
+    ("Cobijas + pañal etapa 5",                  "", "🧸", 1),
+    ("Gorro y ruana",                            "", "🧢", 2),
+    ("Almohada de lactancia + Pañales etapa 4",  "", "🤱", 1),
+    ("Extractor de leche eléctrico",             "", "🍼", 1),
+    ("Pañalera + cambiador",                     "", "🎒", 1),
+    ("Muda de ropa 0 - 3 meses",                 "", "👕", 3),
+    ("Muda de ropa 3 - 6 meses",                 "", "👕", 3),
+    ("Muda de ropa 6 - 9 meses",                 "", "👕", 3),
+    ("Sleeping (saco para dormir)",              "", "🐻", 2),
+    ("Set de pijamas 0 - 3 meses + pañales etapa 2", "", "🌙", 3),
+    ("Set de pijama 3 - 6 meses + pañales etapa 0",  "", "🌙", 3),
+    ("Set de pijama 6 - 9 meses + pañales etapa 1",  "", "🌙", 3),
+    ("Nido para bebé",                           "", "🛏️", 1),
+    ("Coche",                                    "", "🚼", 1),
+    ("Gimnasio para bebé",                       "", "🪀", 1),
+    ("Tetero Avent 11 oz + babero en silicona",  "", "🍼", 1),
 ]
 
 
 # ====================================================================
-#  Capa de base de datos (funciona igual con SQLite y con PostgreSQL)
+#  Base de datos (funciona con SQLite y con PostgreSQL)
 # ====================================================================
 def connect():
     if IS_PG:
@@ -82,29 +99,25 @@ def close_db(exc):
 
 
 def ph(sql):
-    """Traduce los marcadores '?' a '%s' cuando usamos PostgreSQL."""
     return sql.replace("?", "%s") if IS_PG else sql
 
 
 def run(sql, params=(), *, fetch=None, commit=False, db=None):
-    """Ejecuta una consulta. fetch='one'|'all'|None. Devuelve filas tipo dict."""
-    own = db is None
     db = db or get_db()
     cur = db.cursor()
     cur.execute(ph(sql), params)
-    out, rowcount = None, cur.rowcount
+    out = None
     if fetch == "one":
         out = cur.fetchone()
     elif fetch == "all":
         out = cur.fetchall()
+    rc = cur.rowcount
     if commit:
         db.commit()
-    return out if fetch else rowcount
+    return out if fetch else rc
 
 
 def init_db():
-    # En la nube, la base de datos puede tardar unos segundos en estar lista:
-    # reintentamos varias veces antes de rendirnos para que el arranque no falle.
     if IS_PG:
         last = None
         for intento in range(15):
@@ -130,17 +143,18 @@ def _create_schema():
             note TEXT DEFAULT '',
             emoji TEXT DEFAULT '🎁',
             image_url TEXT DEFAULT '',
-            reserved_by TEXT,
-            reserved_at TEXT,
+            qty INTEGER DEFAULT 1,
             sort INTEGER DEFAULT 0
         )
     """)
-    cur.execute("SELECT COUNT(*) AS c FROM gifts")
-    if cur.fetchone()["c"] == 0:
-        for i, (name, note, emoji, img) in enumerate(SEED_GIFTS):
-            cur.execute(ph("INSERT INTO gifts(name,note,emoji,image_url,sort) VALUES(?,?,?,?,?)"),
-                        (name, note, emoji, img, i))
-    # Tabla de confirmaciones de asistencia (RSVP)
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS reservations(
+            {id_col},
+            gift_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            created_at TEXT
+        )
+    """)
     cur.execute(f"""
         CREATE TABLE IF NOT EXISTS rsvps(
             {id_col},
@@ -150,6 +164,31 @@ def _create_schema():
             created_at TEXT
         )
     """)
+    cur.execute("CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT)")
+
+    # --- Migración: asegurar la columna qty en bases con esquema viejo ---
+    if IS_PG:
+        cur.execute("ALTER TABLE gifts ADD COLUMN IF NOT EXISTS qty INTEGER DEFAULT 1")
+    else:
+        cols = [row["name"] for row in cur.execute("PRAGMA table_info(gifts)").fetchall()]
+        if "qty" not in cols:
+            cur.execute("ALTER TABLE gifts ADD COLUMN qty INTEGER DEFAULT 1")
+
+    # --- Sembrar / recargar la lista cuando cambia SEED_VERSION ---
+    cur.execute(ph("SELECT value FROM settings WHERE key=?"), ("seed_version",))
+    rowv = cur.fetchone()
+    current = rowv["value"] if rowv else None
+    cur.execute("SELECT COUNT(*) AS c FROM gifts")
+    empty = cur.fetchone()["c"] == 0
+    if empty or current != SEED_VERSION:
+        cur.execute("DELETE FROM reservations")
+        cur.execute("DELETE FROM gifts")
+        for i, (name, note, emoji, qty) in enumerate(SEED_GIFTS):
+            cur.execute(ph("INSERT INTO gifts(name,note,emoji,qty,sort) VALUES(?,?,?,?,?)"),
+                        (name, note, emoji, qty, i))
+        cur.execute(ph("INSERT INTO settings(key,value) VALUES(?,?) "
+                       "ON CONFLICT(key) DO UPDATE SET value=?"),
+                    ("seed_version", SEED_VERSION, SEED_VERSION))
     db.commit()
     db.close()
 
@@ -158,7 +197,6 @@ def _create_schema():
 #  Utilidades
 # ====================================================================
 def clean(s, maxlen=120):
-    """Sanea texto del usuario: recorta y escapa caracteres peligrosos."""
     if not s:
         return ""
     s = str(s).strip()[:maxlen]
@@ -166,12 +204,28 @@ def clean(s, maxlen=120):
              .replace('"', "&quot;").replace("'", "&#x27;"))
 
 
-def gift_to_dict(r):
+def gift_state(r, reservers):
+    """reservers: lista de nombres que apartaron este regalo."""
+    qty = int(r["qty"] or 1)
+    count = len(reservers)
     return {
         "id": r["id"], "name": r["name"], "note": r["note"],
         "emoji": r["emoji"], "image_url": r["image_url"],
-        "reserved_by": r["reserved_by"], "reserved": bool(r["reserved_by"]),
+        "qty": qty, "count": count, "left": max(0, qty - count),
+        "reserved": count >= qty, "reservers": reservers,
     }
+
+
+def all_gifts():
+    gifts = run("SELECT * FROM gifts ORDER BY sort, id", fetch="all")
+    res = run("SELECT gift_id, name FROM reservations ORDER BY id", fetch="all")
+    by_gift = {}
+    for r in res:
+        by_gift.setdefault(r["gift_id"], []).append(r["name"])
+    out = [gift_state(gobj, by_gift.get(gobj["id"], [])) for gobj in gifts]
+    # disponibles primero, agotados al final
+    out.sort(key=lambda g_: (g_["reserved"], g_["id"]))
+    return out
 
 
 # ====================================================================
@@ -184,10 +238,10 @@ def index():
 
 @app.route("/api/gifts")
 def list_gifts():
-    rows = run("SELECT * FROM gifts ORDER BY (reserved_by IS NOT NULL), sort, id", fetch="all")
-    gifts = [gift_to_dict(r) for r in rows]
-    taken = sum(1 for g_ in gifts if g_["reserved"])
-    return jsonify({"gifts": gifts, "total": len(gifts), "taken": taken})
+    gifts = all_gifts()
+    total = sum(g_["qty"] for g_ in gifts)
+    taken = sum(g_["count"] for g_ in gifts)
+    return jsonify({"gifts": gifts, "total": total, "taken": taken})
 
 
 @app.route("/api/reserve", methods=["POST"])
@@ -197,19 +251,20 @@ def reserve():
     name = clean(data.get("name"), 40)
     if not gid or not name:
         return jsonify({"ok": False, "error": "Falta tu nombre."}), 400
-    now = datetime.datetime.now().isoformat(timespec="seconds")
     db = get_db()
-    # UPDATE condicional: solo reserva si sigue libre (evita choques entre 2 personas)
-    changed = run("UPDATE gifts SET reserved_by=?, reserved_at=? WHERE id=? AND reserved_by IS NULL",
-                  (name, now, gid), commit=True, db=db)
-    if changed == 0:
-        row = run("SELECT * FROM gifts WHERE id=?", (gid,), fetch="one", db=db)
-        if row is None:
-            return jsonify({"ok": False, "error": "Ese regalo ya no existe."}), 404
-        return jsonify({"ok": False, "error": f"Justo lo apartó {row['reserved_by']}. Elige otro 💙",
-                        "gift": gift_to_dict(row)}), 409
-    row = run("SELECT * FROM gifts WHERE id=?", (gid,), fetch="one", db=db)
-    return jsonify({"ok": True, "gift": gift_to_dict(row)})
+    gobj = run("SELECT * FROM gifts WHERE id=?", (gid,), fetch="one", db=db)
+    if gobj is None:
+        return jsonify({"ok": False, "error": "Ese regalo ya no existe."}), 404
+    reservers = [x["name"] for x in run("SELECT name FROM reservations WHERE gift_id=?", (gid,), fetch="all", db=db)]
+    if any(n.lower() == name.lower() for n in reservers):
+        return jsonify({"ok": True, "gift": gift_state(gobj, reservers)})  # ya lo tenía: idempotente
+    if len(reservers) >= int(gobj["qty"] or 1):
+        return jsonify({"ok": False, "error": "Ese regalo ya está completo. Elige otro 💙",
+                        "gift": gift_state(gobj, reservers)}), 409
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    run("INSERT INTO reservations(gift_id,name,created_at) VALUES(?,?,?)", (gid, name, now), commit=True, db=db)
+    reservers.append(name)
+    return jsonify({"ok": True, "gift": gift_state(gobj, reservers)})
 
 
 @app.route("/api/release", methods=["POST"])
@@ -219,15 +274,18 @@ def release():
     name = clean(data.get("name"), 40)
     host = data.get("host_key", "")
     db = get_db()
-    row = run("SELECT * FROM gifts WHERE id=?", (gid,), fetch="one", db=db)
-    if row is None:
+    gobj = run("SELECT * FROM gifts WHERE id=?", (gid,), fetch="one", db=db)
+    if gobj is None:
         return jsonify({"ok": False, "error": "Ese regalo no existe."}), 404
     is_host = host and host == HOST_KEY
-    if not is_host and (row["reserved_by"] or "").lower() != name.lower():
-        return jsonify({"ok": False, "error": "Solo quien lo apartó puede liberarlo."}), 403
-    run("UPDATE gifts SET reserved_by=NULL, reserved_at=NULL WHERE id=?", (gid,), commit=True, db=db)
-    row = run("SELECT * FROM gifts WHERE id=?", (gid,), fetch="one", db=db)
-    return jsonify({"ok": True, "gift": gift_to_dict(row)})
+    if is_host:
+        run("DELETE FROM reservations WHERE gift_id=? AND LOWER(name)=LOWER(?)", (gid, name), commit=True, db=db)
+    else:
+        n = run("DELETE FROM reservations WHERE gift_id=? AND LOWER(name)=LOWER(?)", (gid, name), commit=True, db=db)
+        if n == 0:
+            return jsonify({"ok": False, "error": "Solo quien lo apartó puede liberarlo."}), 403
+    reservers = [x["name"] for x in run("SELECT name FROM reservations WHERE gift_id=?", (gid,), fetch="all", db=db)]
+    return jsonify({"ok": True, "gift": gift_state(gobj, reservers)})
 
 
 # ---------- Modo anfitrión: agregar / eliminar regalos ----------
@@ -241,12 +299,15 @@ def add_gift():
         return jsonify({"ok": False, "error": "El regalo necesita un nombre."}), 400
     note = clean(data.get("note"), 120)
     emoji = clean(data.get("emoji") or "🎁", 8)
-    image_url = clean(data.get("image_url"), 300)
+    try:
+        qty = max(1, min(20, int(data.get("qty") or 1)))
+    except (TypeError, ValueError):
+        qty = 1
     db = get_db()
     mx = run("SELECT COALESCE(MAX(sort),0)+1 AS s FROM gifts", fetch="one", db=db)["s"]
-    row = run("INSERT INTO gifts(name,note,emoji,image_url,sort) VALUES(?,?,?,?,?) RETURNING *",
-              (name, note, emoji, image_url, mx), fetch="one", commit=True, db=db)
-    return jsonify({"ok": True, "gift": gift_to_dict(row)})
+    gobj = run("INSERT INTO gifts(name,note,emoji,qty,sort) VALUES(?,?,?,?,?) RETURNING *",
+               (name, note, emoji, qty, mx), fetch="one", commit=True, db=db)
+    return jsonify({"ok": True, "gift": gift_state(gobj, [])})
 
 
 @app.route("/api/gifts/<int:gid>", methods=["DELETE"])
@@ -254,7 +315,9 @@ def delete_gift(gid):
     data = request.get_json(silent=True) or {}
     if data.get("host_key") != HOST_KEY:
         return jsonify({"ok": False, "error": "Clave de anfitrión incorrecta."}), 403
-    run("DELETE FROM gifts WHERE id=?", (gid,), commit=True)
+    db = get_db()
+    run("DELETE FROM reservations WHERE gift_id=?", (gid,), commit=True, db=db)
+    run("DELETE FROM gifts WHERE id=?", (gid,), commit=True, db=db)
     return jsonify({"ok": True})
 
 
@@ -265,8 +328,7 @@ def rsvp_summary(include_details=False):
     rows = run("SELECT * FROM rsvps ORDER BY id DESC", fetch="all")
     people = len(rows)
     total = people + sum(int(r["guests"] or 0) for r in rows)
-    data = {"people": people, "total": total,
-            "names": [r["name"] for r in rows]}
+    data = {"people": people, "total": total, "names": [r["name"] for r in rows]}
     if include_details:
         data["items"] = [{"name": r["name"], "guests": int(r["guests"] or 0),
                           "message": r["message"] or ""} for r in rows]
@@ -292,7 +354,6 @@ def rsvp_add():
     message = clean(data.get("message"), 200)
     now = datetime.datetime.now().isoformat(timespec="seconds")
     db = get_db()
-    # Si esa persona ya confirmó, actualizamos en vez de duplicar
     existing = run("SELECT id FROM rsvps WHERE LOWER(name)=LOWER(?)", (name,), fetch="one", db=db)
     if existing:
         run("UPDATE rsvps SET guests=?, message=?, created_at=? WHERE id=?",
