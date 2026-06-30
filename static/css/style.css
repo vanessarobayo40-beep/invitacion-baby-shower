@@ -2,11 +2,11 @@
    Baby Shower · Lista de Regalos  —  estilo premium
    ==================================================================== */
 :root{
-  /* Paleta refinada: crema cálida · azul humo · navy tinta · dorado champagne */
-  --ivory:#f5f1ea; --ivory-2:#e7ddcd; --ink:#28333d; --muted:#7c8893;
-  --navy:#16263d; --sky:#a9bccb; --sky-soft:#e4ecf1; --sky-2:#d6e1e9;
-  --gold:#b29553; --gold-soft:#e2d2a9; --white:#fff;
-  --green:#5f8a76; --green-soft:#e8efe9;
+  /* Paleta selva: crema · verde oliva/aguacate · verde hoja · dorado tostado */
+  --ivory:#f7f7ef; --ivory-2:#e6e6d2; --ink:#37432d; --muted:#7e886c;
+  --navy:#5c7f33; --sky:#aac08a; --sky-soft:#e9efdc; --sky-2:#d9e6c2;
+  --gold:#b39646; --gold-soft:#e3d6a6; --white:#fff;
+  --green:#5f8a3f; --green-soft:#e7f0d8;
   --serif:'Fraunces',Georgia,serif; --sans:'Manrope',system-ui,sans-serif;
   --shadow:0 24px 60px -28px rgba(30,58,95,.5);
   --shadow-sm:0 10px 26px -14px rgba(30,58,95,.35);
@@ -18,7 +18,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opa
 
 /* ============ HERO ============ */
 .hero{position:relative;z-index:1;text-align:center;padding:54px 22px 40px;
-  background:radial-gradient(120% 120% at 50% -10%, #d3e0e9 0%, #e6edf1 38%, var(--ivory) 72%);
+  background:radial-gradient(120% 120% at 50% -10%, #dce9c6 0%, #e9f0d8 38%, var(--ivory) 72%);
   border-bottom-left-radius:36px;border-bottom-right-radius:36px;overflow:hidden;}
 .hero-bg{position:absolute;inset:0;pointer-events:none;}
 .tw{position:absolute;color:var(--gold);font-size:13px;opacity:.6;animation:tw 3s ease-in-out infinite;}
@@ -26,13 +26,25 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .moon{width:66px;height:66px;margin:0 auto 18px;border-radius:50%;
   background:radial-gradient(circle at 36% 32%, #fffef7,#f4e7c2 70%,#e7d6ab);
   box-shadow:0 0 40px 8px rgba(255,250,225,.7), inset -6px -6px 16px rgba(201,162,90,.25);}
+/* decoración selva */
+.tagline{font-family:'Dancing Script', var(--serif);font-style:italic;font-size:clamp(22px,6.5vw,30px);
+  color:var(--ink);font-weight:500;position:relative;z-index:2;}
+.monkeys{font-size:40px;line-height:1;margin:6px 0 2px;filter:drop-shadow(0 6px 10px rgba(90,120,50,.25));}
+.pre-baby{color:var(--muted);font-size:15px;margin-top:6px;font-weight:300;}
+.leaves{position:absolute;font-size:46px;line-height:1;z-index:0;opacity:.9;pointer-events:none;user-select:none;}
+.leaves-tl{top:-6px;left:-4px;transform:rotate(-12deg);}
+.leaves-tr{top:-6px;right:-4px;transform:rotate(12deg) scaleX(-1);}
+.leaves-bl{bottom:6px;left:-6px;transform:rotate(8deg) scaleX(-1);}
+.leaves-br{bottom:6px;right:-6px;transform:rotate(-8deg);}
+@media(max-width:420px){.leaves{font-size:34px;}}
+
 .eyebrow{font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);font-weight:700;}
 .title{font-family:var(--serif);font-weight:300;font-size:clamp(40px,13vw,66px);line-height:.96;color:var(--navy);letter-spacing:-1px;margin-top:8px;}
-.baby{font-family:var(--serif);font-style:italic;font-size:clamp(20px,6vw,27px);color:var(--sky);margin-top:6px;}
+.baby{font-family:'Dancing Script',cursive;font-weight:700;font-size:clamp(30px,9vw,46px);color:var(--gold);margin-top:2px;line-height:1.05;}
 .subtitle{color:var(--muted);font-weight:400;margin-top:14px;max-width:420px;margin-left:auto;margin-right:auto;}
 .meta{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;margin-top:18px;font-size:13px;color:var(--navy);font-weight:600;}
 .meta span{background:rgba(255,255,255,.7);border:1px solid var(--ivory-2);padding:7px 14px;border-radius:50px;}
-.hosts-line{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--gold);margin-top:16px;}
+.hosts-line{font-family:'Dancing Script',cursive;font-weight:600;font-size:26px;color:var(--navy);margin-top:18px;}
 
 /* ---- Foto de los papás (marco elegante) ---- */
 .photo-frame{position:relative;z-index:1;width:min(86%,360px);margin:24px auto 6px;padding:10px;

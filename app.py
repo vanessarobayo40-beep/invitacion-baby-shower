@@ -36,11 +36,12 @@ HOST_KEY = os.getenv("HOST_KEY", "mama2026")
 # Datos de la invitación (configurables por variables de entorno)
 EVENT = {
     "title":    os.getenv("EVENT_TITLE", "Baby Shower"),
-    "baby":     os.getenv("EVENT_BABY", "Bienvenido, bebé"),
-    "subtitle": os.getenv("EVENT_SUBTITLE", "Con todo nuestro amor, te esperamos 💙"),
-    "date":     os.getenv("EVENT_DATE", "Sábado 15 de Agosto · 4:00 PM"),
-    "place":    os.getenv("EVENT_PLACE", "Salón Las Nubes · Ciudad"),
-    "hosts":    os.getenv("EVENT_HOSTS", "Los futuros papás"),
+    "baby":     os.getenv("EVENT_BABY", "Bastián Máximo"),
+    "tagline":  os.getenv("EVENT_TAGLINE", "Algo hermoso está por sucedernos"),
+    "subtitle": os.getenv("EVENT_SUBTITLE", "Acompáñanos a celebrar la llegada de nuestro pequeño 🌿"),
+    "date":     os.getenv("EVENT_DATE", "17 de Agosto, 2026 · 3:00 p.m."),
+    "place":    os.getenv("EVENT_PLACE", "Reserva de Madelena"),
+    "hosts":    os.getenv("EVENT_HOSTS", "Yesenia & Sebastián"),
     "photo":    os.getenv("EVENT_PHOTO", "/static/img/portada.jpg"),
 }
 

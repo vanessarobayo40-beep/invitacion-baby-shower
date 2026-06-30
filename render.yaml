@@ -20,10 +20,14 @@ services:
       - key: EVENT_TITLE
         value: "Baby Shower"
       - key: EVENT_BABY
-        value: "Baby Apellido"
+        value: "Bastián Máximo"
+      - key: EVENT_TAGLINE
+        value: "Algo hermoso está por sucedernos"
       - key: EVENT_SUBTITLE
-        value: "Aparta tu regalo y evitemos repetidos 💙"
+        value: "Acompáñanos a celebrar la llegada de nuestro pequeño 🌿"
       - key: EVENT_DATE
-        value: "Sábado 15 de Agosto · 4:00 PM"
+        value: "17 de Agosto, 2026 · 3:00 p.m."
       - key: EVENT_PLACE
-        value: "Salón Las Nubes · Ciudad"
+        value: "Reserva de Madelena"
+      - key: EVENT_HOSTS
+        value: "Yesenia & Sebastián"

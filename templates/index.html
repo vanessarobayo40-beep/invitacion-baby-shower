@@ -11,17 +11,22 @@
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
 <!-- ============ TARJETA DE INVITACIÓN ============ -->
 <header class="hero">
-  <div class="hero-bg"><span class="tw" style="top:14%;left:12%">✦</span><span class="tw" style="top:24%;right:16%;animation-delay:.7s">✦</span><span class="tw" style="bottom:18%;left:20%;animation-delay:1.3s">✦</span><span class="tw" style="bottom:28%;right:18%;animation-delay:.4s">✦</span></div>
-  <div class="moon"></div>
-  <p class="eyebrow">Con cariño, te invitamos a nuestro</p>
+  <!-- esquinas de hojas tropicales -->
+  <div class="leaves leaves-tl">🌴🌿</div>
+  <div class="leaves leaves-tr">🌿🍃</div>
+
+  <p class="tagline">{{ event.tagline }}</p>
+  <div class="monkeys">🐒</div>
+  <p class="eyebrow">Acompáñanos al</p>
   <h1 class="title">{{ event.title }}</h1>
+  <p class="pre-baby">de nuestro pequeño</p>
   <p class="baby">{{ event.baby }}</p>
 
   <!-- Foto de los papás -->
@@ -36,6 +41,9 @@
     <span>📍 {{ event.place }}</span>
   </div>
   <p class="hosts-line">{{ event.hosts }}</p>
+
+  <div class="leaves leaves-bl">🌿🍃</div>
+  <div class="leaves leaves-br">🐒🌴</div>
 </header>
 
 <!-- ============ CONFIRMAR ASISTENCIA (RSVP) ============ -->
