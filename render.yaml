@@ -26,7 +26,7 @@ services:
       - key: EVENT_SUBTITLE
         value: "Acompáñanos a celebrar la llegada de nuestro pequeño 🌿"
       - key: EVENT_DATE
-        value: "17 de Agosto, 2026 · 3:00 p.m."
+        value: "16 de Agosto, 2026 · 3:00 p.m."
       - key: EVENT_PLACE
         value: "Reserva de Madelena"
       - key: EVENT_HOSTS

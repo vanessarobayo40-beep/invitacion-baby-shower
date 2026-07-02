@@ -39,32 +39,31 @@ EVENT = {
     "baby":     os.getenv("EVENT_BABY", "Bastián Máximo"),
     "tagline":  os.getenv("EVENT_TAGLINE", "Algo hermoso está por sucedernos"),
     "subtitle": os.getenv("EVENT_SUBTITLE", "Acompáñanos a celebrar la llegada de nuestro pequeño 🌿"),
-    "date":     os.getenv("EVENT_DATE", "17 de Agosto, 2026 · 3:00 p.m."),
+    "date":     os.getenv("EVENT_DATE", "16 de Agosto, 2026 · 3:00 p.m."),
     "place":    os.getenv("EVENT_PLACE", "Reserva de Madelena"),
     "hosts":    os.getenv("EVENT_HOSTS", "Yesenia & Sebastián"),
     "photo":    os.getenv("EVENT_PHOTO", "/static/img/portada.jpg"),
 }
 
 # Sube este número cuando cambies la lista de regalos para forzar la recarga en la nube.
-SEED_VERSION = "4"
+SEED_VERSION = "5"
 
 # Lista real de regalos: (nombre, nota, emoji, cantidad, imagen)
 SEED_GIFTS = [
     ("Tina plegable + Pañales etapa 2", "", "🛁", 1, "/static/img/gift01.jpg"),
     ("Toallas + Pañales etapa 3", "", "🧻", 2, "/static/img/gift02.jpg"),
     ("Kit de aseo + pañales etapa 0", "", "🧴", 2, "/static/img/gift03.jpg"),
-    ("Set de body + semanario 3 - 6 meses", "", "👕", 3, "/static/img/gift04.jpg"),
-    ("Set de body + semanario 6 - 9 meses", "", "👕", 3, "/static/img/gift05.jpg"),
     ("Set de body + semanario 0 - 3 meses", "", "👕", 2, "/static/img/gift06.jpg"),
-    ("Cobijas + pañal etapa 5", "", "🧸", 1, "/static/img/gift07.jpg"),
+    ("Set de body + semanario 3 - 6 meses", "", "👕", 2, "/static/img/gift04.jpg"),
+    ("Set de body + semanario 6 - 9 meses", "", "👕", 2, "/static/img/gift05.jpg"),
     ("Gorro y ruana", "", "🧢", 2, "/static/img/gift08.jpg"),
-    ("Almohada de lactancia + Pañales etapa 4", "", "🤱", 1, "/static/img/gift09.jpg"),
+    ("Almohada de lactancia + Pañales etapa 2", "", "🤱", 1, "/static/img/gift09.jpg"),
     ("Extractor de leche eléctrico", "", "🍼", 1, "/static/img/gift10.jpg"),
     ("Pañalera + cambiador", "", "🎒", 1, "/static/img/gift11.jpg"),
-    ("Muda de ropa 0 - 3 meses", "", "👕", 3, ""),
-    ("Muda de ropa 3 - 6 meses", "", "👕", 3, ""),
-    ("Muda de ropa 6 - 9 meses", "", "👕", 3, ""),
-    ("Sleeping (saco para dormir)", "", "🐻", 2, "/static/img/gift15.jpg"),
+    ("Muda de ropa 0 - 3 meses + pañales etapa 2 y 3", "", "👕", 3, ""),
+    ("Muda de ropa 3 - 6 meses + pañales etapa 2 y 3", "", "👕", 3, ""),
+    ("Muda de ropa 6 - 9 meses + pañales etapa 2 y 3", "", "👕", 3, ""),
+    ("Sleeping mediano", "", "🐻", 2, "/static/img/gift15.jpg"),
     ("Set de pijamas 0 - 3 meses + pañales etapa 2", "", "👕", 3, "/static/img/gift16.jpg"),
     ("Set de pijama 3 - 6 meses + pañales etapa 0", "", "👕", 3, "/static/img/gift17.jpg"),
     ("Set de pijama 6 - 9 meses + pañales etapa 1", "", "👕", 3, "/static/img/gift18.jpg"),
@@ -72,6 +71,8 @@ SEED_GIFTS = [
     ("Coche", "", "🚼", 1, ""),
     ("Gimnasio para bebé", "", "🪀", 1, "/static/img/gift21.jpg"),
     ("Tetero Avent 11 oz + babero en silicona", "", "🍼", 1, "/static/img/gift22.jpg"),
+    ("Canguro", "", "👶", 1, ""),
+    ("Mecedora", "", "🪑", 1, ""),
 ]
 
 
